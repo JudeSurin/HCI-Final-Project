@@ -228,13 +228,13 @@ def display_map(path, start_location, end_location):
 def create_account_form():
     # Request the user's email via a text input widget in the sidebar.
     # The function st.sidebar.text_input displays a text box in the sidebar where users can enter their email.
-    email = st.sidebar.text_input("Enter your email")
+    username = st.sidebar.text_input("Enter your username")
 
     # Create a button in the sidebar that users can click to submit their email and create an account.
     # The function st.sidebar.button returns True when the button is clicked, triggering the conditional.
     if st.sidebar.button("Create account"):
         # Check if the email variable contains any text, which indicates that the user has entered something.
-        if email:
+        if username:
             # If an email is provided, update the session state to reflect that an account has been created.
             # st.session_state['create_account'] is a persistent variable that holds the state of account creation.
             st.session_state['create_account'] = True
