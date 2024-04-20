@@ -353,8 +353,3 @@ else:
             display_mileage_info_future()
 
 
-
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
