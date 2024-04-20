@@ -1,14 +1,13 @@
 # FINAL PROJECT
-import numpy as np
 import streamlit as st
 import requests
 import folium
 import polyline
-import pandas as pd
 from datetime import datetime
 from streamlit_folium import folium_static
 import plotly.express as px
-
+import pandas as pd
+import numpy as np
 
 
 
@@ -352,9 +351,6 @@ else:
             lease_mileage = st.number_input("What is your desired yearly mileage. "
                                             "Please do not include any commas (e.g 10000 for 10,000/year)", min_value=1)
             display_mileage_info_future()
-
-
-
 
 
 
