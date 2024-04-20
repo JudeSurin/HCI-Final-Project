@@ -1,5 +1,5 @@
 # FINAL PROJECT
-
+import numpy as np
 import streamlit as st
 import requests
 import folium
@@ -7,6 +7,7 @@ import polyline
 import pandas as pd
 from datetime import datetime
 from streamlit_folium import folium_static
+import plotly.express as px
 
 
 
@@ -118,9 +119,28 @@ def display_mileage_info_current():
     st.info(f"You have {remaining_days} days left in this lease")
     st.dataframe(df)
 
-    # Display a success message if there is no excess mileage yet
-    st.success(f"You do not have any excess mileage yet")
+   # Display a success message if there is no excess mileage yet
+    if current_mileage <= mileage_contracted:
+        st.success(f"You do not have any excess mileage yet")
 
+
+    # Create a DataFrame with the remaining mileage and total mileage
+    data = pd.DataFrame(
+        {'Contracted Mileage': [(mileage_contracted - remaining_mileage)], 'Remaining Mileage': [remaining_mileage]})
+    data.index = ['Mileage Info']
+
+    # Define the color
+    if remaining_mileage > 0:
+        colors = ['blue', 'skyblue']
+    else:
+        colors = ['blue', 'red']
+
+    # Display the bar chart
+    st.subheader('Mileage Summary')
+    fig = px.bar(data, x=data.index, y=data.columns, color_discrete_sequence=colors,
+                 text_auto=True)
+    fig.update_layout(title_text='Remaining Mileage', title_x=0.5)
+    st.plotly_chart(fig)
 
 def display_mileage_info_future():
     # Constants for time conversion factors
@@ -273,10 +293,10 @@ if account_type == "Continue as a Guest":
 
         elif excess_fee_known == "No":
             excess_fee = 0.20
-            if current_mileage <= mileage_contracted:
-                display_mileage_info_current()
-            else:
+            display_mileage_info_current()
+            if current_mileage > mileage_contracted:
                 excess_fee_amount(excess_fee, current_mileage, mileage_contracted)
+
 
     else:
         lease_length = st.number_input("Please the desired lease's length in months (e.g 36 for 36 months)", min_value=1)
@@ -301,6 +321,7 @@ else:
 
             elif excess_fee_known == "No":
                 excess_fee = 0.20
+                display_mileage_info_current()
                 if current_mileage <= mileage_contracted:
                     display_mileage_info_current()
                     route_calculation = st.selectbox("Would you like to calculate how a future "
@@ -333,9 +354,6 @@ else:
             display_mileage_info_future()
 
 
-chart_data = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
-
-st.bar_chart(chart_data)
 
 
 
