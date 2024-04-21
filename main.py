@@ -9,49 +9,47 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 
-
-
 st.title("Lease Mile Manager App")
 st.header("Streamlit and Google Maps API")
 api_key = "AIzaSyAbR45vcfyN2rn57SzXJZEA_pxMUJEXv4g"
 
 
 def calculate_original_mileage_data(mileage_contracted, months_contracted):
-    # Constants for time conversion factors
+    # Constants used for time conversion
     days_per_year = 365.242199  # Average number of days in a year to account for leap years
     months_per_year = 12  # Number of months in a year
     weeks_per_year = 52.143  # Average number of weeks in a year
 
-    # Calculate yearly mileage based on total contracted mileage and months of the contract
+    # Calculate yearly mileage
     yearly_mileage = mileage_contracted / (months_contracted / months_per_year)
 
-    # Calculate monthly mileage by dividing the yearly mileage by the number of months in a year
+    # Calculate monthly mileage
     monthly_mileage = yearly_mileage / months_per_year
 
-    # Calculate weekly mileage by dividing the yearly mileage by the number of weeks in a year
+    # Calculate weekly mileage
     weekly_mileage = yearly_mileage / weeks_per_year
 
-    # Calculate daily mileage by dividing the yearly mileage by the number of days in a year
+    # Calculate daily mileage
     daily_mileage = yearly_mileage / days_per_year
 
-    # Return the calculated mileages as a list for yearly, monthly, weekly, and daily periods
+    # Return the calculated mileages
     return [yearly_mileage, monthly_mileage, weekly_mileage, daily_mileage]
 
 
 def calculate_remaining_mileage_data(mileage_contracted, lease_end_date, current_mileage):
-    # Constants for time conversion factors
+    # Constants for time conversion
     days_per_year = 365.242199  # Average number of days in a year to account for leap years
-    days_per_month = 30.417     # Average number of days in a month
-    days_per_week = 7           # Number of days in a week
+    days_per_month = 30.417  # Average number of days in a month
+    days_per_week = 7  # Number of days in a week
 
-    # Calculate the remaining mileage by subtracting the current mileage from the contracted mileage
+    # Calculate the remaining mileage
     remaining_mileage = mileage_contracted - current_mileage
-    # Calculate the number of days left until the lease ends
+    # Calculate the number of days left on lease
     remaining_days = (lease_end_date - datetime.now().date()).days
 
     # Check if the lease has already ended or ends today
     if remaining_days <= 0:
-        return [0, 0, 0, 0]  # No days left in the lease, so no mileage left to allocate
+        return [0, 0, 0, 0]  # No days left in the lease, so no mileage left
 
     # Calculate daily mileage allowed from now to the end of the lease
     daily_mileage = remaining_mileage / remaining_days
@@ -118,28 +116,26 @@ def display_mileage_info_current():
     st.info(f"You have {remaining_days} days left in this lease")
     st.dataframe(df)
 
-   # Display a success message if there is no excess mileage yet
+    # Display a success message if there is no excess mileage yet
     if current_mileage <= mileage_contracted:
         st.success(f"You do not have any excess mileage yet")
 
-
     # Create a DataFrame with the remaining mileage and total mileage
-    data = pd.DataFrame(
-        {'Contracted Mileage': [(mileage_contracted - remaining_mileage)], 'Remaining Mileage': [remaining_mileage]})
-    data.index = ['Mileage Info']
+    data = pd.DataFrame({
+        'Type': ['Current Mileage', 'Remaining Mileage'],
+        'Mileage': [current_mileage, remaining_mileage]
+    })
 
     # Define the color
-    if remaining_mileage > 0:
-        colors = ['blue', 'skyblue']
-    else:
-        colors = ['blue', 'red']
+    colors = ['lightblue', 'silver']
 
     # Display the bar chart
-    st.subheader('Mileage Summary')
-    fig = px.bar(data, x=data.index, y=data.columns, color_discrete_sequence=colors,
-                 text_auto=True)
-    fig.update_layout(title_text='Remaining Mileage', title_x=0.5)
+    st.subheader(f"Total Mileage Contracted = {mileage_contracted}")
+    fig = px.pie(data, names='Type', values='Mileage', color_discrete_sequence=colors)
+    fig.update_traces(textinfo='label+percent+value ', textfont_size=14)
+    fig.update_layout(title_text='Total mileage usage', title_x=0.5)
     st.plotly_chart(fig)
+
 
 def display_mileage_info_future():
     # Constants for time conversion factors
@@ -263,7 +259,7 @@ def create_account_form():
         else:
             # If no email is entered (email string is empty), display an error message prompting the user to enter an email address.
             # This uses st.sidebar.error to show the message in the sidebar.
-            st.sidebar.error("Please enter an email address.")
+            st.sidebar.error("Please enter an username address.")
 
 
 # Initialize the 'create_account' flag in the session state if it's not already set.
@@ -271,11 +267,9 @@ def create_account_form():
 if 'create_account' not in st.session_state:
     st.session_state['create_account'] = False
 
-
 account_type = st.sidebar.selectbox("Please choose how you wish to continue", options=["Continue as a Guest",
                                                                                        "Create an Account"])
 st.sidebar.info("If you choose to continue as a Guest your information will not be saved")
-
 
 if account_type == "Continue as a Guest":
     lease_type = st.sidebar.selectbox("Are we working on", options=["Current lease", "Future lease"])
@@ -296,9 +290,9 @@ if account_type == "Continue as a Guest":
             if current_mileage > mileage_contracted:
                 excess_fee_amount(excess_fee, current_mileage, mileage_contracted)
 
-
     else:
-        lease_length = st.number_input("Please the desired lease's length in months (e.g 36 for 36 months)", min_value=1)
+        lease_length = st.number_input("Please the desired lease's length in months (e.g 36 for 36 months)",
+                                       min_value=1)
         lease_mileage = st.number_input("What is your desired yearly mileage. "
                                         "Please do not include any commas (e.g 10000 for 10,000/year)", min_value=1)
         display_mileage_info_future()
@@ -320,12 +314,11 @@ else:
 
             elif excess_fee_known == "No":
                 excess_fee = 0.20
-                display_mileage_info_current()
                 if current_mileage <= mileage_contracted:
                     display_mileage_info_current()
                     route_calculation = st.selectbox("Would you like to calculate how a future "
-                                           "trip would affect the current mileage?",
-                                           options=["Yes", "No"])
+                                                     "trip would affect the current mileage?",
+                                                     options=["", "Yes", "No"])
                     if route_calculation == "Yes":
                         start = st.text_input("Enter start location")
                         end = st.text_input("Enter destination location")
@@ -333,9 +326,10 @@ else:
                         path, distance, duration, start_loc, end_loc = calculate_route(start, end, api_key)
                         if path:
                             st.write(f"Distance: {distance}, Duration: {duration}")
-                            display_map(path, start_loc, end_loc)
+                            if see_map:
+                                display_map(path, start_loc, end_loc)
                             clean_distance = distance.replace(' mi', '').replace(',', '')
-                            current_mileage = current_mileage + int(clean_distance)
+                            current_mileage = current_mileage + float(clean_distance)
                             if current_mileage <= mileage_contracted:
                                 display_mileage_info_current()
                             else:
@@ -344,12 +338,9 @@ else:
                 else:
                     excess_fee_amount(excess_fee, current_mileage, mileage_contracted)
 
-
         else:
             lease_length = st.number_input("Please the desired lease's length in months (e.g 36 for 36 months)",
                                            min_value=1)
             lease_mileage = st.number_input("What is your desired yearly mileage. "
                                             "Please do not include any commas (e.g 10000 for 10,000/year)", min_value=1)
             display_mileage_info_future()
-
-
